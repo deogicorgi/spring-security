@@ -1,0 +1,17 @@
+security:
+  http:
+    form-login:
+      url:
+        login-url: /login
+        process-url: /process
+        logout-url: /logout
+        success-url : /success
+        failure-url : /failure
+      parameter:
+        username : account
+        password : password
+    oAuth2-login:
+      url:
+        login-url: /oauth-login
+        process-url: /oauth-process
+        logout-url: /logout

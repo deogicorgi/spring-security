@@ -1,6 +1,6 @@
 package com.deogicorgi.security.authenticate;
 
-import com.deogicorgi.security.model.AbstractSecurityUser;
+import com.deogicorgi.security.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.*;
@@ -23,25 +23,25 @@ public class DefaultAuthenticationProvider implements AuthenticationProvider {
 
         log.info("[{}] Start the authentication process. Request ID [{}]", getClass().getSimpleName(), account);
 
-        AbstractSecurityUser abstractSecurityUser = authenticationService.authenticate(account, password);
+        User user = authenticationService.authenticate(account, password);
 
-        if (!abstractSecurityUser.isCredentialsNonExpired()) {
+        if (!user.isCredentialsNonExpired()) {
             throw new CredentialsExpiredException("Credentials has expired.");
         }
 
-        if (!abstractSecurityUser.isAccountNonExpired()) {
+        if (!user.isAccountNonExpired()) {
             throw new AccountExpiredException("Credentials has expired.");
         }
 
-        if (!abstractSecurityUser.isAccountNonLocked()) {
+        if (!user.isAccountNonLocked()) {
             throw new LockedException("Credentials has expired.");
         }
 
-        if (!abstractSecurityUser.isEnabled()) {
+        if (!user.isEnabled()) {
             throw new DisabledException("Credentials has expired.");
         }
 
-        return authenticationService.generateToken(abstractSecurityUser);
+        return authenticationService.generateToken(user);
     }
 
     @Override

@@ -3,7 +3,9 @@
 
 spring:
   config:
-    import: security.yml
+#    import: security.yml
+    activate:
+      on-profile: local
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://deogicorgi.homeserver:23306/lotto?serverTimezone=UTC&characterEncoding=UTF-8

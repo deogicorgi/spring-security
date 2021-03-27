@@ -1,6 +1,6 @@
 package com.deogicorgi.security.authenticate;
 
-import com.deogicorgi.security.model.AbstractSecurityUser;
+import com.deogicorgi.security.model.User;
 import com.deogicorgi.security.model.UserAuthenticationToken;
 import org.springframework.stereotype.Service;
 
@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service;
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
-    public AbstractSecurityUser authenticate(String account, String password) {
+    public User authenticate(String account, String password) {
         return null;
     }
 
     @Override
-    public UserAuthenticationToken generateToken(AbstractSecurityUser abstractSecurityUser) {
+    public UserAuthenticationToken generateToken(User user) {
         return null;
     }
 }

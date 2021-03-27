@@ -3,9 +3,12 @@ package com.deogicorgi.security.config;
 import com.deogicorgi.security.authenticate.AuthenticationService;
 import com.deogicorgi.security.authenticate.AuthenticationServiceImpl;
 import com.deogicorgi.security.authenticate.DefaultAuthenticationProvider;
+import com.deogicorgi.security.config.properties.SecurityProperties;
+import com.deogicorgi.security.handler.DefaultAuthenticationFailureHandler;
 import com.deogicorgi.security.handler.DefaultAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -13,17 +16,12 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.config.annotation.web.configurers.FormLoginConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -34,32 +32,54 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth, AuthenticationService authenticationService) throws Exception {
+    public void configureGlobal(AuthenticationManagerBuilder auth, AuthenticationService authenticationService, SecurityProperties securityProperties) throws Exception {
         auth.authenticationProvider(authenticationProvider(authenticationService));
     }
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
-        http.csrf().disable()
+
+        SecurityProperties securityProperties = securityProperties();
+        System.out.println(securityProperties);
+
+        HttpSecurity httpSecurity = http.csrf().disable()
                 .authorizeRequests()
                 .anyRequest().authenticated()
+                .and();
 
-                .and()
-                .formLogin()
-                .loginPage("/login")
-                .loginProcessingUrl("/auth")
-                .usernameParameter("account")
-                .passwordParameter("password")
-                .successHandler(successHandler())
-                .failureHandler(failureHandler())
+        // form login setting
+        FormLoginConfigurer<HttpSecurity> formLogin = httpSecurity.formLogin();
+
+        formLogin.loginPage(securityProperties.getHttp().getFormLogin().getUrl().getLoginUrl())
+                .loginProcessingUrl(securityProperties.getHttp().getFormLogin().getUrl().getProcessUrl())
+                .usernameParameter(securityProperties.getHttp().getFormLogin().getParameter().getUsername())
+                .passwordParameter(securityProperties.getHttp().getFormLogin().getParameter().getPassword())
+                .permitAll();
+
+        if (true) {
+            formLogin = formLogin
+                    .successHandler(successHandler())
+                    .failureHandler(failureHandler());
+        }
+
+        httpSecurity = formLogin.and();
+
+        //form login success and failure setting
+
+
+        httpSecurity = httpSecurity.oauth2Login()
+                .loginPage("")
+                .loginProcessingUrl("")
                 .permitAll()
+                .and();
 
-                .and()
-                .logout()
+        httpSecurity.logout()
+                .logoutUrl(securityProperties.getHttp().getFormLogin().getUrl().getLogoutUrl())
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))
                 .deleteCookies("JSESSIONID")
                 .invalidateHttpSession(true)
                 .permitAll();
+
     }
 
     public AuthenticationProvider authenticationProvider(AuthenticationService authenticationService) {
@@ -71,14 +91,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private AuthenticationFailureHandler failureHandler() {
-        return new AuthenticationFailureHandler() {
-            @Override
-            public void onAuthenticationFailure(HttpServletRequest httpServletRequest,
-                                                HttpServletResponse httpServletResponse, AuthenticationException e)
-                    throws IOException, ServletException {
-                httpServletResponse.setStatus(401);
-            }
-        };
+        return new DefaultAuthenticationFailureHandler();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "security")
+    public SecurityProperties securityProperties() {
+        return new SecurityProperties();
     }
 
     @Bean

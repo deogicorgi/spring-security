@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Set;
 
 
-public abstract class AbstractSecurityUser implements UserDetails, CredentialsContainer {
+public abstract class User implements UserDetails, CredentialsContainer {
 
     private final String account;
     private String password;
@@ -19,7 +19,7 @@ public abstract class AbstractSecurityUser implements UserDetails, CredentialsCo
     private final boolean passwordNonExpired;
     private final boolean enabled;
 
-    protected AbstractSecurityUser(String account, Set<GrantedAuthority> authorities, boolean accountNonExpired, boolean accountNonLocked, boolean passwordNonExpired, boolean enabled) {
+    protected User(String account, Set<GrantedAuthority> authorities, boolean accountNonExpired, boolean accountNonLocked, boolean passwordNonExpired, boolean enabled) {
         this.account = account;
         this.authorities = authorities;
         this.accountNonExpired = accountNonExpired;
